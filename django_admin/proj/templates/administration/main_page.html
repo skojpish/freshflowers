@@ -1,0 +1,11 @@
+{% extends 'administration/layout.html' %}
+
+{% block title %}Главная страница{% endblock %}
+
+{% block content %}
+    <div class="d-grid gap-3" role="group">
+        <a class="btn btn-primary" href="/admin" role="button" id="admin">Перейти в панель администрирования</a>
+        <a class="btn btn-primary" href="/excel" role="button" id="excel">Загрузить excel таблицу</a>
+        <a class="btn btn-primary" href="/pricelist" role="button">Загрузить прайс лист</a>
+    </div>
+{% endblock %}

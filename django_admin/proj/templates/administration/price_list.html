@@ -1,0 +1,38 @@
+{% extends 'administration/layout.html' %}
+
+{% block title %}Загрузка прайс листа{% endblock %}
+
+{% block content %}
+
+    {% if user.is_superuser %}
+        <div class="home">
+            <a class="btn btn-primary" href="/" role="button" id="home_button">
+                <i class="bi bi-house"></i>
+            </a>
+        </div>
+        {% if error is not None %}
+        <div class="excel_input">
+            <form method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                {{ form.price_list }}<br>
+                <p class="excel_warn" align="justify">{{ error }}</p>
+                <button class="btn btn-success" type="submit">Загрузить файл</button>
+            </form>
+        </div>
+        {% else %}
+        <div class="excel_input">
+            <form method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                {{ form.price_list }}<br>
+                <button class="btn btn-success" type="submit">Загрузить файл</button>
+            </form>
+        </div>
+        {% endif %}
+    {% else %}
+        <div class="excel_input">
+            <p class="excel_warn" align="justify">Вы не авторизовались в панели администратора! После авторизации, попробуйте загрузить файл еще раз</p>
+            <a class="btn btn-primary" href="/admin" role="button" id="admin">Перейти в панель администрирования</a>
+        </div>
+    {% endif %}
+
+{% endblock %}

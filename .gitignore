@@ -1,0 +1,7 @@
+/.idea
+/venv
+**/__pycache__
+/django_admin/proj/static/*
+
+/bot/.env
+*.log

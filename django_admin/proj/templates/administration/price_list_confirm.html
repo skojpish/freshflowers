@@ -1,0 +1,16 @@
+{% extends 'administration/layout.html' %}
+{% load static %}
+
+{% block title %}Загрузка прайс листа{% endblock %}
+
+{% block content %}
+    <div class="home">
+        <a class="btn btn-primary" href="/" role="button" id="home_button">
+            <i class="bi bi-house"></i>
+        </a>
+    </div>
+    <div class="excel_confirm">
+        <img src="{% static 'administration/img/confirm.png' %}" id="img_confirm" width="100" height="100"><br>
+        <p class="prlist_confirm" align="justify">Прайс лист успешно загружен!</p>
+    </div>
+{% endblock %}
