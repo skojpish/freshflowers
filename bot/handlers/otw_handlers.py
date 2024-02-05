@@ -264,7 +264,7 @@ async def in_stock_callbacks(callback: CallbackQuery, callback_data: ItemsCF) ->
         ))
         kb.adjust(1)
         return kb.as_markup()
-    if data['mult'] is not None:
+    if data['mult'] is not None and data['min'] is None:
         if data['col'] > data['mult']:
             await callback.message.answer_photo(data['photo'], f"{data['name']}\n"
                                                                f"{data['descrip']}\n"
@@ -272,7 +272,7 @@ async def in_stock_callbacks(callback: CallbackQuery, callback_data: ItemsCF) ->
                                                                f"Оставшееся количество: {data['col']} шт\n"
                                                                f"Кратность: {data['mult']}*\n"
                                                                f"Дата прибытия: {data['date'].strftime('%d.%m.%Y')}\n\n"
-                                                               f"* можно заказать лишь кратное данному числу количество",
+                                                               f"* можно заказать лишь КРАТНОЕ данному числу количество",
                                                                reply_markup=items_order_kb())
         elif data['col'] <= data['mult']:
             await callback.message.answer_photo(data['photo'], f"{data['name']}\n"
@@ -281,7 +281,7 @@ async def in_stock_callbacks(callback: CallbackQuery, callback_data: ItemsCF) ->
                                                                f"Оставшееся количество: {data['col']} шт\n"
                                                                f"Дата прибытия: {data['date'].strftime('%d.%m.%Y')}",
                                                 reply_markup=items_order_kb())
-    elif data['min'] is not None:
+    elif data['min'] is not None and data['mult'] is None:
         if data['col'] > data['min']:
             await callback.message.answer_photo(data['photo'], f"{data['name']}\n"
                                                                f"{data['descrip']}\n"
@@ -298,6 +298,25 @@ async def in_stock_callbacks(callback: CallbackQuery, callback_data: ItemsCF) ->
                                                                f"Оставшееся количество: {data['col']} шт\n"
                                                                f"Дата прибытия: {data['date'].strftime('%d.%m.%Y')}",
                                                                reply_markup=items_order_kb())
+    else:
+        if data['col'] > data['min']:
+            await callback.message.answer_photo(data['photo'], f"{data['name']}\n"
+                                                               f"{data['descrip']}\n"
+                                                               f"Цена: {data['price']} руб\n"
+                                                               f"Оставшееся количество: {data['col']} шт\n"
+                                                               f"Минимальный заказ: {data['min']}*\n"
+                                                               f"Кратность: {data['mult']}**\n"
+                                                               f"Дата прибытия: {data['date'].strftime('%d.%m.%Y')}\n\n"
+                                                               f"* можно заказать лишь НЕ МЕНЬШЕ данного числа количество\n"
+                                                               f"** можно заказать лишь КРАТНОЕ данному числу количество",
+                                                reply_markup=items_order_kb())
+        elif data['col'] <= data['min']:
+            await callback.message.answer_photo(data['photo'], f"{data['name']}\n"
+                                                               f"{data['descrip']}\n"
+                                                               f"Цена: {data['price']} руб\n"
+                                                               f"Оставшееся количество: {data['col']} шт\n"
+                                                               f"Дата прибытия: {data['date'].strftime('%d.%m.%Y')}",
+                                                reply_markup=items_order_kb())
     await callback.answer()
 
 # Add to basket
@@ -329,7 +348,7 @@ async def count(msg: Message, state: FSMContext) -> None:
     mult = row[7]
     min = row[8]
 
-    if min is not None:
+    if min is not None and mult is None:
         if int(msg.text) <= count and int(msg.text) >= min:
             await db_basket.add_items_count(int(msg.text), msg.from_user.id)
             await state.clear()
@@ -350,7 +369,7 @@ async def count(msg: Message, state: FSMContext) -> None:
             await msg.answer(f"<b>Вы ввели количество, большее того, что есть в наличии!</b>\n\n"
                              f"Напишите количество, которое вы хотели бы заказать еще раз",
                                           reply_markup=back_to_menu_kb())
-    elif mult is not None:
+    elif mult is not None and min is None:
         if int(msg.text)%mult == 0 and int(msg.text) <= count and int(msg.text) > 0:
             await db_basket.add_items_count(int(msg.text), msg.from_user.id)
             await state.clear()
@@ -371,6 +390,37 @@ async def count(msg: Message, state: FSMContext) -> None:
             await msg.answer(f"<b>Вы ввели количество, которое не кратно, описанной выше кратности!</b>\n\n"
                              f"Напишите количество, которое вы хотели бы заказать еще раз",
                              reply_markup=back_to_menu_kb())
+    elif min is not None and mult is not None:
+        if int(msg.text) <= count and int(msg.text) >= min and int(msg.text)%mult == 0:
+            await db_basket.add_items_count(int(msg.text), msg.from_user.id)
+            await state.clear()
+            await msg.answer(f"Товар успешно добавлен в корзину!",
+                                                    reply_markup=add_basket_kb())
+        elif int(msg.text) < 0:
+            await state.set_state(OrderInfo.count_otw)
+            await msg.answer(f"<b>Вы ввели отрицательное количество!</b>\n\n"
+                             f"Напишите количество, которое вы хотели бы заказать еще раз",
+                             reply_markup=back_to_menu_kb())
+        elif int(msg.text) > count:
+            await state.set_state(OrderInfo.count_otw)
+            await msg.answer(f"<b>Вы ввели количество, большее того, что есть в наличии!</b>\n\n"
+                             f"Напишите количество, которое вы хотели бы заказать еще раз",
+                                          reply_markup=back_to_menu_kb())
+        elif int(msg.text)%mult != 0:
+            await state.set_state(OrderInfo.count_otw)
+            await msg.answer(f"<b>Вы ввели количество, которое не кратно, описанной выше кратности!</b>\n\n"
+                             f"Напишите количество, которое вы хотели бы заказать еще раз",
+                             reply_markup=back_to_menu_kb())
+        elif int(msg.text) < min and int(msg.text) >= 0:
+            await state.set_state(OrderInfo.count_otw)
+            await msg.answer(f"<b>Вы ввели количество, меньшее, чем необходимый минимум!</b>\n\n"
+                             f"Напишите количество, которое вы хотели бы заказать еще раз",
+                             reply_markup=back_to_menu_kb())
+        else:
+            await state.set_state(OrderInfo.count_otw)
+            await msg.answer(f"<b>Вы ввели количество, большее того, что есть в наличии!</b>\n\n"
+                             f"Напишите количество, которое вы хотели бы заказать еще раз",
+                                          reply_markup=back_to_menu_kb())
 
 @router.message(OrderInfo.count_buy_now_otw)
 async def count(msg: Message, state: FSMContext) -> None:
@@ -380,7 +430,7 @@ async def count(msg: Message, state: FSMContext) -> None:
     mult = row[7]
     min = row[8]
 
-    if min is not None:
+    if min is not None and mult is None:
         if (int(msg.text) <= count and int(msg.text) >= min) or (count <= min and int(msg.text) > 0 and int(msg.text) <= count):
             await db_basket.add_items_count(int(msg.text), msg.from_user.id)
             await state.clear()
@@ -497,7 +547,7 @@ async def count(msg: Message, state: FSMContext) -> None:
             await msg.answer(f"<b>Вы ввели количество, большее того, что есть в наличии!</b>\n\n"
                              f"Напишите количество, которое вы хотели бы заказать еще раз",
                              reply_markup=back_to_menu_kb())
-    elif mult is not None:
+    elif mult is not None and min is None:
         if (int(msg.text) % mult == 0 and int(msg.text) <= count and int(msg.text) > 0) or (count <= mult and int(msg.text) > 0 and int(msg.text) <= count):
             await db_basket.add_items_count(int(msg.text), msg.from_user.id)
             await state.clear()
@@ -612,5 +662,133 @@ async def count(msg: Message, state: FSMContext) -> None:
         else:
             await state.set_state(OrderInfo.count_otw)
             await msg.answer(f"<b>Вы ввели количество, которое не кратно, описанной выше кратности!</b>\n\n"
+                             f"Напишите количество, которое вы хотели бы заказать еще раз",
+                             reply_markup=back_to_menu_kb())
+
+    elif mult is not None and min is not None:
+        if int(msg.text) <= count and int(msg.text) >= min and int(msg.text) % mult == 0:
+            await db_basket.add_items_count(int(msg.text), msg.from_user.id)
+            await state.clear()
+            await db_ord.add_user_to_order(msg.from_user.id)
+            reg_info = await db_ord.get_ord_row(msg.from_user.id)
+            if reg_info[2] is None:
+                await msg.answer(f"Выберите тип вашего бизнеса", reply_markup=business_type_kb())
+            else:
+                items_otw = []
+                items_inst = []
+                pre_ord = []
+                items_otw_exist: bool = False
+                items_inst_exist: bool = False
+                pre_order_exist: bool = False
+
+                basket_data = await db_basket.print_basket(msg.from_user.id)
+                for item in basket_data:
+                    data = {
+                        'item': item[2],
+                        'col': item[3],
+                        'pre_ord': item[4],
+                        'category': item[5]
+                    }
+
+                    if data['item'] is not None and data['category'] == 'otw' and data['pre_ord'] is None:
+                        items_otw_exist = True
+                        items_otw.append(f"{data['item']}: {data['col']} шт")
+                    elif data['item'] is not None and data['category'] == 'inst' and data['pre_ord'] is None:
+                        items_inst_exist = True
+                        items_inst.append(f"{data['item']}: {data['col']} шт")
+                    else:
+                        pre_order_exist = True
+                        pre_ord.append(f"{data['pre_ord']}")
+
+                new_line = '\n'
+
+                if pre_order_exist and items_otw_exist and not items_inst_exist:
+                    await msg.answer(f"<u><b>Корзина</b></u>\n\n"
+                                     f"<b>Товары в пути:</b>\n{new_line.join([str(item) for item in items_otw])}\n\n"
+                                     f"<b>Предзаказ:</b>\n"
+                                     f"{pre_ord[0]}\n\n"
+                                     f"<b>Данные о вас:</b>\n"
+                                     f"Тип бизнеса: {reg_info[2]}\n"
+                                     f"ФИО: {reg_info[3]}\n"
+                                     f"Номер телефона: {reg_info[4]}",
+                                     reply_markup=send_order_kb())
+                elif pre_order_exist and not items_otw_exist and not items_inst_exist:
+                    await msg.answer(f"<u><b>Корзина</b></u>\n\n"
+                                     f"<b>Предзаказ:</b>\n"
+                                     f"{pre_ord[0]}\n\n"
+                                     f"<b>Данные о вас:</b>\n"
+                                     f"Тип бизнеса: {reg_info[2]}\n"
+                                     f"ФИО: {reg_info[3]}\n"
+                                     f"Номер телефона: {reg_info[4]}",
+                                     reply_markup=send_order_kb())
+                elif not pre_order_exist and items_otw_exist and not items_inst_exist:
+                    await msg.answer(f"<u><b>Корзина</b></u>\n\n"
+                                     f"<b>Товары в пути:</b>\n{new_line.join([str(item) for item in items_otw])}\n\n"
+                                     f"<b>Данные о вас:</b>\n"
+                                     f"Тип бизнеса: {reg_info[2]}\n"
+                                     f"ФИО: {reg_info[3]}\n"
+                                     f"Номер телефона: {reg_info[4]}",
+                                     reply_markup=send_order_kb())
+                elif pre_order_exist and not items_otw_exist and items_inst_exist:
+                    await msg.answer(f"<u><b>Корзина</b></u>\n\n"
+                                     f"<b>Товары в наличии:</b>\n{new_line.join([str(item) for item in items_inst])}\n\n"
+                                     f"<b>Предзаказ:</b>\n"
+                                     f"{pre_ord[0]}\n\n"
+                                     f"<b>Данные о вас:</b>\n"
+                                     f"Тип бизнеса: {reg_info[2]}\n"
+                                     f"ФИО: {reg_info[3]}\n"
+                                     f"Номер телефона: {reg_info[4]}",
+                                     reply_markup=send_order_kb())
+                elif not pre_order_exist and not items_otw_exist and items_inst_exist:
+                    await msg.answer(f"<u><b>Корзина</b></u>\n\n"
+                                     f"<b>Товары в наличии:</b>\n{new_line.join([str(item) for item in items_inst])}\n\n"
+                                     f"<b>Данные о вас:</b>\n"
+                                     f"Тип бизнеса: {reg_info[2]}\n"
+                                     f"ФИО: {reg_info[3]}\n"
+                                     f"Номер телефона: {reg_info[4]}",
+                                     reply_markup=send_order_kb())
+                elif pre_order_exist and items_otw_exist and items_inst_exist:
+                    await msg.answer(f"<u><b>Корзина</b></u>\n\n"
+                                     f"<b>Товары в пути:</b>\n{new_line.join([str(item) for item in items_otw])}\n\n"
+                                     f"<b>Товары в наличии:</b>\n{new_line.join([str(item) for item in items_inst])}\n\n"
+                                     f"<b>Предзаказ:</b>\n"
+                                     f"{pre_ord[0]}\n\n"
+                                     f"<b>Данные о вас:</b>\n"
+                                     f"Тип бизнеса: {reg_info[2]}\n"
+                                     f"ФИО: {reg_info[3]}\n"
+                                     f"Номер телефона: {reg_info[4]}",
+                                     reply_markup=send_order_kb())
+                elif not pre_order_exist and items_otw_exist and items_inst_exist:
+                    await msg.answer(f"<u><b>Корзина</b></u>\n\n"
+                                     f"<b>Товары в пути:</b>\n{new_line.join([str(item) for item in items_otw])}\n\n"
+                                     f"<b>Товары в наличии:</b>\n{new_line.join([str(item) for item in items_inst])}\n\n"
+                                     f"<b>Данные о вас:</b>\n"
+                                     f"Тип бизнеса: {reg_info[2]}\n"
+                                     f"ФИО: {reg_info[3]}\n"
+                                     f"Номер телефона: {reg_info[4]}",
+                                     reply_markup=send_order_kb())
+        elif int(msg.text) < 0:
+            await state.set_state(OrderInfo.count_otw)
+            await msg.answer(f"<b>Вы ввели отрицательное количество!</b>\n\n"
+                             f"Напишите количество, которое вы хотели бы заказать еще раз",
+                             reply_markup=back_to_menu_kb())
+        elif int(msg.text) > count:
+            await state.set_state(OrderInfo.count_otw)
+            await msg.answer(f"<b>Вы ввели количество, большее того, что есть в наличии!</b>\n\n"
+                             f"Напишите количество, которое вы хотели бы заказать еще раз",
+                             reply_markup=back_to_menu_kb())
+        elif int(msg.text) % mult != 0:
+            await state.set_state(OrderInfo.count_otw)
+            await msg.answer(f"<b>Вы ввели количество, которое не кратно, описанной выше кратности!</b>\n\n"
+                             f"Напишите количество, которое вы хотели бы заказать еще раз",
+                             reply_markup=back_to_menu_kb())
+        elif int(msg.text) < min and int(msg.text) >= 0:
+            await state.set_state(OrderInfo.count_otw)
+            await msg.answer(f"<b>Вы ввели количество, меньшее, чем необходимый минимум!</b>\n\n"
+                             f"Напишите количество, которое вы хотели бы заказать еще раз",
+                             reply_markup=back_to_menu_kb())
+        else:
+            await state.set_state(OrderInfo.count_otw)
+            await msg.answer(f"<b>Вы ввели количество, большее того, что есть в наличии!</b>\n\n"
                              f"Напишите количество, которое вы хотели бы заказать еще раз",
                              reply_markup=back_to_menu_kb())

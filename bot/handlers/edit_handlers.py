@@ -313,7 +313,7 @@ async def edit_item_count(msg: Message, state: FSMContext) -> None:
     mult = row[7]
     min = row[8]
 
-    if min is not None:
+    if min is not None and mult is None:
         if (int(msg.text) <= count and int(msg.text) >= min) or (count <= min and int(msg.text) > 0 and int(msg.text) <= count):
             await db_basket.add_items_count(int(msg.text), msg.from_user.id)
             await state.clear()
@@ -337,7 +337,7 @@ async def edit_item_count(msg: Message, state: FSMContext) -> None:
             await msg.answer(f"<b>Вы ввели количество, большее того, что есть в наличии!</b>\n\n"
                              f"Напишите количество, которое вы хотели бы заказать еще раз",
                              reply_markup=back_to_menu_kb())
-    elif mult is not None:
+    elif mult is not None and min is None:
         if (int(msg.text) % mult == 0 and int(msg.text) <= count and int(msg.text) > 0) or (count <= mult and int(msg.text) > 0 and int(msg.text) <= count):
             await db_basket.add_items_count(int(msg.text), msg.from_user.id)
             await state.clear()
@@ -361,6 +361,40 @@ async def edit_item_count(msg: Message, state: FSMContext) -> None:
             await msg.answer(f"<b>Вы ввели количество, которое не кратно, описанной выше кратности!</b>\n\n"
                              f"Напишите количество, которое вы хотели бы заказать еще раз",
                              reply_markup=back_to_menu_kb())
+    elif min is not None and mult is not None:
+        if int(msg.text) <= count and int(msg.text) >= min and int(msg.text)%mult == 0:
+            await db_basket.add_items_count(int(msg.text), msg.from_user.id)
+            await state.clear()
+            reg_info = await db_ord.get_ord_row(msg.from_user.id)
+            if reg_info is None:
+                await msg.answer(f"Данные успешно изменены!", reply_markup=final_basket_edit_kb())
+            else:
+                await msg.answer(f"Данные успешно изменены!", reply_markup=final_order_edit_kb())
+        elif int(msg.text) < 0:
+            await state.set_state(OrderEdit.otw_count)
+            await msg.answer(f"<b>Вы ввели отрицательное количество!</b>\n\n"
+                             f"Напишите количество, которое вы хотели бы заказать еще раз",
+                             reply_markup=back_to_menu_kb())
+        elif int(msg.text) > count:
+            await state.set_state(OrderEdit.otw_count)
+            await msg.answer(f"<b>Вы ввели количество, большее того, что есть в наличии!</b>\n\n"
+                             f"Напишите количество, которое вы хотели бы заказать еще раз",
+                                          reply_markup=back_to_menu_kb())
+        elif int(msg.text)%mult != 0:
+            await state.set_state(OrderEdit.otw_count)
+            await msg.answer(f"<b>Вы ввели количество, которое не кратно, описанной выше кратности!</b>\n\n"
+                             f"Напишите количество, которое вы хотели бы заказать еще раз",
+                             reply_markup=back_to_menu_kb())
+        elif int(msg.text) < min and int(msg.text) >= 0:
+            await state.set_state(OrderEdit.otw_count)
+            await msg.answer(f"<b>Вы ввели количество, меньшее, чем необходимый минимум!</b>\n\n"
+                             f"Напишите количество, которое вы хотели бы заказать еще раз",
+                             reply_markup=back_to_menu_kb())
+        else:
+            await state.set_state(OrderEdit.otw_count)
+            await msg.answer(f"<b>Вы ввели количество, большее того, что есть в наличии!</b>\n\n"
+                             f"Напишите количество, которое вы хотели бы заказать еще раз",
+                                          reply_markup=back_to_menu_kb())
 
 @router.message(OrderEdit.inst_count)
 async def edit_item_count(msg: Message, state: FSMContext) -> None:
@@ -370,7 +404,7 @@ async def edit_item_count(msg: Message, state: FSMContext) -> None:
     mult = row[7]
     min = row[8]
 
-    if min is not None:
+    if min is not None and mult is None:
         if (int(msg.text) <= count and int(msg.text) >= min) or (count <= min and int(msg.text) > 0 and int(msg.text) <= count):
             await db_basket.add_items_count(int(msg.text), msg.from_user.id)
             await state.clear()
@@ -394,7 +428,7 @@ async def edit_item_count(msg: Message, state: FSMContext) -> None:
             await msg.answer(f"<b>Вы ввели количество, большее того, что есть в наличии!</b>\n\n"
                              f"Напишите количество, которое вы хотели бы заказать еще раз",
                              reply_markup=back_to_menu_kb())
-    elif mult is not None:
+    elif mult is not None and min is None:
         if (int(msg.text) % mult == 0 and int(msg.text) <= count and int(msg.text) > 0) or (count <= mult and int(msg.text) > 0 and int(msg.text) <= count):
             await db_basket.add_items_count(int(msg.text), msg.from_user.id)
             await state.clear()
@@ -418,6 +452,40 @@ async def edit_item_count(msg: Message, state: FSMContext) -> None:
             await msg.answer(f"<b>Вы ввели количество, которое не кратно, описанной выше кратности!</b>\n\n"
                              f"Напишите количество, которое вы хотели бы заказать еще раз",
                              reply_markup=back_to_menu_kb())
+    elif min is not None and mult is not None:
+        if int(msg.text) <= count and int(msg.text) >= min and int(msg.text)%mult == 0:
+            await db_basket.add_items_count(int(msg.text), msg.from_user.id)
+            await state.clear()
+            reg_info = await db_ord.get_ord_row(msg.from_user.id)
+            if reg_info is None:
+                await msg.answer(f"Данные успешно изменены!", reply_markup=final_basket_edit_kb())
+            else:
+                await msg.answer(f"Данные успешно изменены!", reply_markup=final_order_edit_kb())
+        elif int(msg.text) < 0:
+            await state.set_state(OrderEdit.inst_count)
+            await msg.answer(f"<b>Вы ввели отрицательное количество!</b>\n\n"
+                             f"Напишите количество, которое вы хотели бы заказать еще раз",
+                             reply_markup=back_to_menu_kb())
+        elif int(msg.text) > count:
+            await state.set_state(OrderEdit.inst_count)
+            await msg.answer(f"<b>Вы ввели количество, большее того, что есть в наличии!</b>\n\n"
+                             f"Напишите количество, которое вы хотели бы заказать еще раз",
+                                          reply_markup=back_to_menu_kb())
+        elif int(msg.text)%mult != 0:
+            await state.set_state(OrderEdit.inst_count)
+            await msg.answer(f"<b>Вы ввели количество, которое не кратно, описанной выше кратности!</b>\n\n"
+                             f"Напишите количество, которое вы хотели бы заказать еще раз",
+                             reply_markup=back_to_menu_kb())
+        elif int(msg.text) < min and int(msg.text) >= 0:
+            await state.set_state(OrderEdit.inst_count)
+            await msg.answer(f"<b>Вы ввели количество, меньшее, чем необходимый минимум!</b>\n\n"
+                             f"Напишите количество, которое вы хотели бы заказать еще раз",
+                             reply_markup=back_to_menu_kb())
+        else:
+            await state.set_state(OrderEdit.inst_count)
+            await msg.answer(f"<b>Вы ввели количество, большее того, что есть в наличии!</b>\n\n"
+                             f"Напишите количество, которое вы хотели бы заказать еще раз",
+                                          reply_markup=back_to_menu_kb())
 
 # Change order data
 @router.callback_query(F.data == "change_order")
