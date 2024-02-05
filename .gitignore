@@ -2,7 +2,9 @@
 /venv
 **/__pycache__
 /django_admin/proj/static/*
-/django_admin/proj/media/*
+/django_admin/proj/media
+/django_admin/proj/administration/migrations
+/django_admin/proj/statistic/migrations
 
 /django_admin/proj/proj/config_db.py
 /bot/.env

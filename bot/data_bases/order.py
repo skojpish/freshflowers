@@ -78,5 +78,16 @@ class DB_order(DB_conn):
         except:
             print("MDA")
 
+    async def add_order_to_site(self, user_name, link, order, type_of_b, fullname, number, time):
+        try:
+            if self.pool is None:
+                await self.create_pool()
+            async with self.pool.acquire() as conn:
+                async with conn.transaction():
+                    await conn.execute(
+                        f"INSERT INTO statistic_order(user_name, link_user, order_user, type_of_b, fullname, number, time_ord) "
+                        f"VALUES('{user_name}', '{link}', $1, '{type_of_b}', '{fullname}', '{number}', '{time}');", order)
+        except:
+            print("MDA")
 
 db_ord = DB_order()

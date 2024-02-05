@@ -15,6 +15,8 @@ from bot.keyboards.menu_kbs import back_to_menu_kb, back_to_menu_photo_kb
 from bot.keyboards.order_kbs import basket_kb, add_basket_kb, business_type_kb, preord_kb, \
     basket_empty_kb, continue_kb, send_order_kb
 
+from datetime import datetime
+
 router = Router()
 
 # Menu
@@ -421,11 +423,19 @@ async def confirm_pre_order(callback: CallbackQuery) -> None:
         else:
             pre_order_exist = True
             pre_ord.append(f"{data['pre_ord']}")
+
     await callback.message.answer(f"Спасибо за заказ {callback.from_user.full_name}!\n"
                                   f"Наш менеджер скоро свяжется с вами", reply_markup=basket_empty_kb())
 
     new_line = '\n'
     reg_info = await db_ord.get_ord_row(callback.from_user.id)
+
+    user_data = {
+        'type_of_b': reg_info[2],
+        'fullname': reg_info[3],
+        'number': reg_info[4]
+    }
+
 
     if callback.from_user.username:
         if pre_order_exist and items_otw_exist and not items_inst_exist:
@@ -436,9 +446,9 @@ async def confirm_pre_order(callback: CallbackQuery) -> None:
                                               f"<b>Предзаказ:</b>\n"
                                               f"{pre_ord[0]}\n\n"
                                               f"<b>Данные о пользователе:</b>\n"
-                                              f"Тип бизнеса: {reg_info[2]}\n"
-                                              f"ФИО: {reg_info[3]}\n"
-                                              f"Номер телефона: {reg_info[4]}")
+                                              f"Тип бизнеса: {user_data['type_of_b']}\n"
+                                              f"ФИО: {user_data['fullname']}\n"
+                                              f"Номер телефона: {user_data['number']}")
             await bot.send_message(master_id2, f"<u><b>НОВЫЙ ЗАКАЗ</b></u>\n"
                                                f"Пользователь: {callback.from_user.full_name}\n"
                                                f"Ссылка: https://t.me/{callback.from_user.username}\n\n"
@@ -446,9 +456,17 @@ async def confirm_pre_order(callback: CallbackQuery) -> None:
                                                f"<b>Предзаказ:</b>\n"
                                                f"{pre_ord[0]}\n\n"
                                                f"<b>Данные о пользователе:</b>\n"
-                                               f"Тип бизнеса: {reg_info[2]}\n"
-                                               f"ФИО: {reg_info[3]}\n"
-                                               f"Номер телефона: {reg_info[4]}")
+                                               f"Тип бизнеса: {user_data['type_of_b']}\n"
+                                              f"ФИО: {user_data['fullname']}\n"
+                                              f"Номер телефона: {user_data['number']}")
+
+            order = f"Товары в пути:\n{new_line.join([str(item) for item in items_otw])}\n\n" \
+                    f"Предзаказ:\n" \
+                    f"{pre_ord[0]}\n\n"
+
+            await db_ord.add_order_to_site(callback.from_user.full_name, f'https://t.me/{callback.from_user.username}', order, user_data['type_of_b'],
+                                           user_data['fullname'], user_data['number'], datetime.now())
+
         elif pre_order_exist and not items_otw_exist and not items_inst_exist:
             await bot.send_message(master_id1, f"<u><b>НОВЫЙ ЗАКАЗ</b></u>\n"
                                               f"Пользователь: {callback.from_user.full_name}\n"
@@ -456,35 +474,50 @@ async def confirm_pre_order(callback: CallbackQuery) -> None:
                                               f"<b>Предзаказ:</b>\n"
                                               f"{pre_ord[0]}\n\n"
                                               f"<b>Данные о пользователе:</b>\n"
-                                              f"Тип бизнеса: {reg_info[2]}\n"
-                                              f"ФИО: {reg_info[3]}\n"
-                                              f"Номер телефона: {reg_info[4]}")
+                                              f"Тип бизнеса: {user_data['type_of_b']}\n"
+                                              f"ФИО: {user_data['fullname']}\n"
+                                              f"Номер телефона: {user_data['number']}")
             await bot.send_message(master_id2, f"<u><b>НОВЫЙ ЗАКАЗ</b></u>\n"
                                                f"Пользователь: {callback.from_user.full_name}\n"
                                                f"Ссылка: https://t.me/{callback.from_user.username}\n\n"
                                                f"<b>Предзаказ:</b>\n"
                                                f"{pre_ord[0]}\n\n"
                                                f"<b>Данные о пользователе:</b>\n"
-                                               f"Тип бизнеса: {reg_info[2]}\n"
-                                               f"ФИО: {reg_info[3]}\n"
-                                               f"Номер телефона: {reg_info[4]}")
+                                               f"Тип бизнеса: {user_data['type_of_b']}\n"
+                                              f"ФИО: {user_data['fullname']}\n"
+                                              f"Номер телефона: {user_data['number']}")
+
+            order = f"Предзаказ:\n" \
+                    f"{pre_ord[0]}\n\n"
+
+            await db_ord.add_order_to_site(callback.from_user.full_name, f'https://t.me/{callback.from_user.username}',
+                                           order, user_data['type_of_b'],
+                                           user_data['fullname'], user_data['number'], datetime.now())
+
         elif not pre_order_exist and items_otw_exist and not items_inst_exist:
             await bot.send_message(master_id1, f"<u><b>НОВЫЙ ЗАКАЗ</b></u>\n"
                                               f"Пользователь: {callback.from_user.full_name}\n"
                                               f"Ссылка: https://t.me/{callback.from_user.username}\n\n"
                                               f"<b>Товары в пути:</b>\n{new_line.join([str(item) for item in items_otw])}\n\n"
                                               f"<b>Данные о пользователе:</b>\n"
-                                              f"Тип бизнеса: {reg_info[2]}\n"
-                                              f"ФИО: {reg_info[3]}\n"
-                                              f"Номер телефона: {reg_info[4]}")
+                                              f"Тип бизнеса: {user_data['type_of_b']}\n"
+                                              f"ФИО: {user_data['fullname']}\n"
+                                              f"Номер телефона: {user_data['number']}")
             await bot.send_message(master_id2, f"<u><b>НОВЫЙ ЗАКАЗ</b></u>\n"
                                                f"Пользователь: {callback.from_user.full_name}\n"
                                                f"Ссылка: https://t.me/{callback.from_user.username}\n\n"
                                                f"<b>Товары в пути:</b>\n{new_line.join([str(item) for item in items_otw])}\n\n"
                                                f"<b>Данные о пользователе:</b>\n"
-                                               f"Тип бизнеса: {reg_info[2]}\n"
-                                               f"ФИО: {reg_info[3]}\n"
-                                               f"Номер телефона: {reg_info[4]}")
+                                               f"Тип бизнеса: {user_data['type_of_b']}\n"
+                                              f"ФИО: {user_data['fullname']}\n"
+                                              f"Номер телефона: {user_data['number']}")
+
+            order = f"Товары в пути:\n{new_line.join([str(item) for item in items_otw])}\n\n"
+
+            await db_ord.add_order_to_site(callback.from_user.full_name, f'https://t.me/{callback.from_user.username}',
+                                           order, user_data['type_of_b'],
+                                           user_data['fullname'], user_data['number'], datetime.now())
+
         elif pre_order_exist and not items_otw_exist and items_inst_exist:
             await bot.send_message(master_id1, f"<u><b>НОВЫЙ ЗАКАЗ</b></u>\n"
                                               f"Пользователь: {callback.from_user.full_name}\n"
@@ -493,9 +526,9 @@ async def confirm_pre_order(callback: CallbackQuery) -> None:
                                               f"<b>Предзаказ:</b>\n"
                                               f"{pre_ord[0]}\n\n"
                                               f"<b>Данные о пользователе:</b>\n"
-                                              f"Тип бизнеса: {reg_info[2]}\n"
-                                              f"ФИО: {reg_info[3]}\n"
-                                              f"Номер телефона: {reg_info[4]}")
+                                              f"Тип бизнеса: {user_data['type_of_b']}\n"
+                                              f"ФИО: {user_data['fullname']}\n"
+                                              f"Номер телефона: {user_data['number']}")
             await bot.send_message(master_id2, f"<u><b>НОВЫЙ ЗАКАЗ</b></u>\n"
                                                f"Пользователь: {callback.from_user.full_name}\n"
                                                f"Ссылка: https://t.me/{callback.from_user.username}\n\n"
@@ -503,26 +536,42 @@ async def confirm_pre_order(callback: CallbackQuery) -> None:
                                                f"<b>Предзаказ:</b>\n"
                                                f"{pre_ord[0]}\n\n"
                                                f"<b>Данные о пользователе:</b>\n"
-                                               f"Тип бизнеса: {reg_info[2]}\n"
-                                               f"ФИО: {reg_info[3]}\n"
-                                               f"Номер телефона: {reg_info[4]}")
+                                               f"Тип бизнеса: {user_data['type_of_b']}\n"
+                                              f"ФИО: {user_data['fullname']}\n"
+                                              f"Номер телефона: {user_data['number']}")
+
+            order = f"Товары в наличии:\n{new_line.join([str(item) for item in items_inst])}\n\n" \
+                    f"Предзаказ:\n" \
+                    f"{pre_ord[0]}\n\n"
+
+            await db_ord.add_order_to_site(callback.from_user.full_name, f'https://t.me/{callback.from_user.username}',
+                                           order, user_data['type_of_b'],
+                                           user_data['fullname'], user_data['number'], datetime.now())
+
         elif not pre_order_exist and not items_otw_exist and items_inst_exist:
             await bot.send_message(master_id1, f"<u><b>НОВЫЙ ЗАКАЗ</b></u>\n"
                                               f"Пользователь: {callback.from_user.full_name}\n"
                                               f"Ссылка: https://t.me/{callback.from_user.username}\n\n"
                                               f"<b>Товары в наличии:</b>\n{new_line.join([str(item) for item in items_inst])}\n\n"
                                               f"<b>Данные о пользователе:</b>\n"
-                                              f"Тип бизнеса: {reg_info[2]}\n"
-                                              f"ФИО: {reg_info[3]}\n"
-                                              f"Номер телефона: {reg_info[4]}")
+                                              f"Тип бизнеса: {user_data['type_of_b']}\n"
+                                              f"ФИО: {user_data['fullname']}\n"
+                                              f"Номер телефона: {user_data['number']}")
             await bot.send_message(master_id2, f"<u><b>НОВЫЙ ЗАКАЗ</b></u>\n"
                                                f"Пользователь: {callback.from_user.full_name}\n"
                                                f"Ссылка: https://t.me/{callback.from_user.username}\n\n"
                                                f"<b>Товары в наличии:</b>\n{new_line.join([str(item) for item in items_inst])}\n\n"
                                                f"<b>Данные о пользователе:</b>\n"
-                                               f"Тип бизнеса: {reg_info[2]}\n"
-                                               f"ФИО: {reg_info[3]}\n"
-                                               f"Номер телефона: {reg_info[4]}")
+                                               f"Тип бизнеса: {user_data['type_of_b']}\n"
+                                              f"ФИО: {user_data['fullname']}\n"
+                                              f"Номер телефона: {user_data['number']}")
+
+            order = f"Товары в наличии:\n{new_line.join([str(item) for item in items_inst])}\n\n"
+
+            await db_ord.add_order_to_site(callback.from_user.full_name, f'https://t.me/{callback.from_user.username}',
+                                           order, user_data['type_of_b'],
+                                           user_data['fullname'], user_data['number'], datetime.now())
+
         elif pre_order_exist and items_otw_exist and items_inst_exist:
             await bot.send_message(master_id1, f"<u><b>НОВЫЙ ЗАКАЗ</b></u>\n"
                                               f"Пользователь: {callback.from_user.full_name}\n"
@@ -532,9 +581,9 @@ async def confirm_pre_order(callback: CallbackQuery) -> None:
                                               f"<b>Предзаказ:</b>\n"
                                               f"{pre_ord[0]}\n\n"
                                               f"<b>Данные о пользователе:</b>\n"
-                                              f"Тип бизнеса: {reg_info[2]}\n"
-                                              f"ФИО: {reg_info[3]}\n"
-                                              f"Номер телефона: {reg_info[4]}")
+                                              f"Тип бизнеса: {user_data['type_of_b']}\n"
+                                              f"ФИО: {user_data['fullname']}\n"
+                                              f"Номер телефона: {user_data['number']}")
             await bot.send_message(master_id2, f"<u><b>НОВЫЙ ЗАКАЗ</b></u>\n"
                                                f"Пользователь: {callback.from_user.full_name}\n"
                                                f"Ссылка: https://t.me/{callback.from_user.username}\n\n"
@@ -543,9 +592,19 @@ async def confirm_pre_order(callback: CallbackQuery) -> None:
                                                f"<b>Предзаказ:</b>\n"
                                                f"{pre_ord[0]}\n\n"
                                                f"<b>Данные о пользователе:</b>\n"
-                                               f"Тип бизнеса: {reg_info[2]}\n"
-                                               f"ФИО: {reg_info[3]}\n"
-                                               f"Номер телефона: {reg_info[4]}")
+                                               f"Тип бизнеса: {user_data['type_of_b']}\n"
+                                              f"ФИО: {user_data['fullname']}\n"
+                                              f"Номер телефона: {user_data['number']}")
+
+            order = f"Товары в пути:\n{new_line.join([str(item) for item in items_otw])}\n\n" \
+                    f"Товары в наличии:\n{new_line.join([str(item) for item in items_inst])}\n\n" \
+                    f"Предзаказ:\n" \
+                    f"{pre_ord[0]}\n\n"
+
+            await db_ord.add_order_to_site(callback.from_user.full_name, f'https://t.me/{callback.from_user.username}',
+                                           order, user_data['type_of_b'],
+                                           user_data['fullname'], user_data['number'], datetime.now())
+
         elif not pre_order_exist and items_otw_exist and items_inst_exist:
             await bot.send_message(master_id1, f"<u><b>НОВЫЙ ЗАКАЗ</b></u>\n"
                                               f"Пользователь: {callback.from_user.full_name}\n"
@@ -553,18 +612,26 @@ async def confirm_pre_order(callback: CallbackQuery) -> None:
                                               f"<b>Товары в пути:</b>\n{new_line.join([str(item) for item in items_otw])}\n\n"
                                               f"<b>Товары в наличии:</b>\n{new_line.join([str(item) for item in items_inst])}\n\n"
                                               f"<b>Данные о пользователе:</b>\n"
-                                              f"Тип бизнеса: {reg_info[2]}\n"
-                                              f"ФИО: {reg_info[3]}\n"
-                                              f"Номер телефона: {reg_info[4]}")
+                                              f"Тип бизнеса: {user_data['type_of_b']}\n"
+                                              f"ФИО: {user_data['fullname']}\n"
+                                              f"Номер телефона: {user_data['number']}")
             await bot.send_message(master_id2, f"<u><b>НОВЫЙ ЗАКАЗ</b></u>\n"
                                                f"Пользователь: {callback.from_user.full_name}\n"
                                                f"Ссылка: https://t.me/{callback.from_user.username}\n\n"
                                                f"<b>Товары в пути:</b>\n{new_line.join([str(item) for item in items_otw])}\n\n"
                                                f"<b>Товары в наличии:</b>\n{new_line.join([str(item) for item in items_inst])}\n\n"
                                                f"<b>Данные о пользователе:</b>\n"
-                                               f"Тип бизнеса: {reg_info[2]}\n"
-                                               f"ФИО: {reg_info[3]}\n"
-                                               f"Номер телефона: {reg_info[4]}")
+                                               f"Тип бизнеса: {user_data['type_of_b']}\n"
+                                              f"ФИО: {user_data['fullname']}\n"
+                                              f"Номер телефона: {user_data['number']}")
+
+            order = f"Товары в пути:\n{new_line.join([str(item) for item in items_otw])}\n\n" \
+                    f"Товары в наличии:\n{new_line.join([str(item) for item in items_inst])}\n\n"
+
+            await db_ord.add_order_to_site(callback.from_user.full_name, f'https://t.me/{callback.from_user.username}',
+                                           order, user_data['type_of_b'],
+                                           user_data['fullname'], user_data['number'], datetime.now())
+
     elif not callback.from_user.username:
         await callback.message.answer(f"Добрый день, {callback.from_user.full_name}! Получили вашу заявку, но, кажется, у вас закрытый аккаунт и мы не можем с вами связаться.\n"
                          f"Напишите пожалуйста нам в личные сообщения: {master_username1} или {master_username2} \n"
@@ -578,9 +645,9 @@ async def confirm_pre_order(callback: CallbackQuery) -> None:
                                               f"<b>Предзаказ:</b>\n"
                                               f"{pre_ord[0]}\n\n"
                                               f"<b>Данные о пользователе:</b>\n"
-                                              f"Тип бизнеса: {reg_info[2]}\n"
-                                              f"ФИО: {reg_info[3]}\n"
-                                              f"Номер телефона: {reg_info[4]}")
+                                              f"Тип бизнеса: {user_data['type_of_b']}\n"
+                                              f"ФИО: {user_data['fullname']}\n"
+                                              f"Номер телефона: {user_data['number']}")
             await bot.send_message(master_id2, f"<u><b>НОВЫЙ ЗАКАЗ</b></u>\n"
                                                f"Пользователь: {callback.from_user.full_name}\n"
                                                f"У пользователя закрытый аккаунт, ваш аккаунт для связи ему отправлен, <b>ждите сообщения!</b>\n\n"
@@ -588,9 +655,18 @@ async def confirm_pre_order(callback: CallbackQuery) -> None:
                                                f"<b>Предзаказ:</b>\n"
                                                f"{pre_ord[0]}\n\n"
                                                f"<b>Данные о пользователе:</b>\n"
-                                               f"Тип бизнеса: {reg_info[2]}\n"
-                                               f"ФИО: {reg_info[3]}\n"
-                                               f"Номер телефона: {reg_info[4]}")
+                                               f"Тип бизнеса: {user_data['type_of_b']}\n"
+                                              f"ФИО: {user_data['fullname']}\n"
+                                              f"Номер телефона: {user_data['number']}")
+
+            order = f"Товары в пути:\n{new_line.join([str(item) for item in items_otw])}\n\n" \
+                    f"Предзаказ:\n" \
+                    f"{pre_ord[0]}\n\n"
+
+            await db_ord.add_order_to_site(callback.from_user.full_name, 'Закрытый акк. должен написать в лс',
+                                           order, user_data['type_of_b'],
+                                           user_data['fullname'], user_data['number'], datetime.now())
+
         elif pre_order_exist and not items_otw_exist and not items_inst_exist:
             await bot.send_message(master_id1, f"<u><b>НОВЫЙ ЗАКАЗ</b></u>\n"
                                               f"Пользователь: {callback.from_user.full_name}\n"
@@ -598,35 +674,50 @@ async def confirm_pre_order(callback: CallbackQuery) -> None:
                                               f"<b>Предзаказ:</b>\n"
                                               f"{pre_ord[0]}\n\n"
                                               f"<b>Данные о пользователе:</b>\n"
-                                              f"Тип бизнеса: {reg_info[2]}\n"
-                                              f"ФИО: {reg_info[3]}\n"
-                                              f"Номер телефона: {reg_info[4]}")
+                                              f"Тип бизнеса: {user_data['type_of_b']}\n"
+                                              f"ФИО: {user_data['fullname']}\n"
+                                              f"Номер телефона: {user_data['number']}")
             await bot.send_message(master_id2, f"<u><b>НОВЫЙ ЗАКАЗ</b></u>\n"
                                                f"Пользователь: {callback.from_user.full_name}\n"
                                                f"У пользователя закрытый аккаунт, ваш аккаунт для связи ему отправлен, <b>ждите сообщения!</b>\n\n"
                                                f"<b>Предзаказ:</b>\n"
                                                f"{pre_ord[0]}\n\n"
                                                f"<b>Данные о пользователе:</b>\n"
-                                               f"Тип бизнеса: {reg_info[2]}\n"
-                                               f"ФИО: {reg_info[3]}\n"
-                                               f"Номер телефона: {reg_info[4]}")
+                                               f"Тип бизнеса: {user_data['type_of_b']}\n"
+                                              f"ФИО: {user_data['fullname']}\n"
+                                              f"Номер телефона: {user_data['number']}")
+
+            order = f"Предзаказ:\n" \
+                    f"{pre_ord[0]}\n\n"
+
+            await db_ord.add_order_to_site(callback.from_user.full_name, 'Закрытый акк. должен написать в лс',
+                                           order, user_data['type_of_b'],
+                                           user_data['fullname'], user_data['number'], datetime.now())
+
         elif not pre_order_exist and items_otw_exist and not items_inst_exist:
             await bot.send_message(master_id1, f"<u><b>НОВЫЙ ЗАКАЗ</b></u>\n"
                                               f"Пользователь: {callback.from_user.full_name}\n"
                                               f"У пользователя закрытый аккаунт, ваш аккаунт для связи ему отправлен, <b>ждите сообщения!</b>\n\n"
                                               f"<b>Товары в пути:</b>\n{new_line.join([str(item) for item in items_otw])}\n\n"
                                               f"<b>Данные о пользователе:</b>\n"
-                                              f"Тип бизнеса: {reg_info[2]}\n"
-                                              f"ФИО: {reg_info[3]}\n"
-                                              f"Номер телефона: {reg_info[4]}")
+                                              f"Тип бизнеса: {user_data['type_of_b']}\n"
+                                              f"ФИО: {user_data['fullname']}\n"
+                                              f"Номер телефона: {user_data['number']}")
             await bot.send_message(master_id2, f"<u><b>НОВЫЙ ЗАКАЗ</b></u>\n"
                                                f"Пользователь: {callback.from_user.full_name}\n"
                                                f"У пользователя закрытый аккаунт, ваш аккаунт для связи ему отправлен, <b>ждите сообщения!</b>\n\n"
                                                f"<b>Товары в пути:</b>\n{new_line.join([str(item) for item in items_otw])}\n\n"
                                                f"<b>Данные о пользователе:</b>\n"
-                                               f"Тип бизнеса: {reg_info[2]}\n"
-                                               f"ФИО: {reg_info[3]}\n"
-                                               f"Номер телефона: {reg_info[4]}")
+                                               f"Тип бизнеса: {user_data['type_of_b']}\n"
+                                              f"ФИО: {user_data['fullname']}\n"
+                                              f"Номер телефона: {user_data['number']}")
+
+            order = f"Товары в пути:\n{new_line.join([str(item) for item in items_otw])}\n\n"
+
+            await db_ord.add_order_to_site(callback.from_user.full_name, 'Закрытый акк. должен написать в лс',
+                                           order, user_data['type_of_b'],
+                                           user_data['fullname'], user_data['number'], datetime.now())
+
         elif pre_order_exist and not items_otw_exist and items_inst_exist:
             await bot.send_message(master_id1, f"<u><b>НОВЫЙ ЗАКАЗ</b></u>\n"
                                               f"Пользователь: {callback.from_user.full_name}\n"
@@ -635,9 +726,9 @@ async def confirm_pre_order(callback: CallbackQuery) -> None:
                                               f"<b>Предзаказ:</b>\n"
                                               f"{pre_ord[0]}\n\n"
                                               f"<b>Данные о пользователе:</b>\n"
-                                              f"Тип бизнеса: {reg_info[2]}\n"
-                                              f"ФИО: {reg_info[3]}\n"
-                                              f"Номер телефона: {reg_info[4]}")
+                                              f"Тип бизнеса: {user_data['type_of_b']}\n"
+                                              f"ФИО: {user_data['fullname']}\n"
+                                              f"Номер телефона: {user_data['number']}")
             await bot.send_message(master_id2, f"<u><b>НОВЫЙ ЗАКАЗ</b></u>\n"
                                                f"Пользователь: {callback.from_user.full_name}\n"
                                                f"У пользователя закрытый аккаунт, ваш аккаунт для связи ему отправлен, <b>ждите сообщения!</b>\n\n"
@@ -645,26 +736,42 @@ async def confirm_pre_order(callback: CallbackQuery) -> None:
                                                f"<b>Предзаказ:</b>\n"
                                                f"{pre_ord[0]}\n\n"
                                                f"<b>Данные о пользователе:</b>\n"
-                                               f"Тип бизнеса: {reg_info[2]}\n"
-                                               f"ФИО: {reg_info[3]}\n"
-                                               f"Номер телефона: {reg_info[4]}")
+                                               f"Тип бизнеса: {user_data['type_of_b']}\n"
+                                              f"ФИО: {user_data['fullname']}\n"
+                                              f"Номер телефона: {user_data['number']}")
+
+            order = f"Товары в наличии:\n{new_line.join([str(item) for item in items_inst])}\n\n" \
+                    f"Предзаказ:\n" \
+                    f"{pre_ord[0]}\n\n"
+
+            await db_ord.add_order_to_site(callback.from_user.full_name, 'Закрытый акк. должен написать в лс',
+                                           order, user_data['type_of_b'],
+                                           user_data['fullname'], user_data['number'], datetime.now())
+
         elif not pre_order_exist and not items_otw_exist and items_inst_exist:
             await bot.send_message(master_id1, f"<u><b>НОВЫЙ ЗАКАЗ</b></u>\n"
                                               f"Пользователь: {callback.from_user.full_name}\n"
                                               f"У пользователя закрытый аккаунт, ваш аккаунт для связи ему отправлен, <b>ждите сообщения!</b>\n\n"
                                               f"<b>Товары в наличии:</b>\n{new_line.join([str(item) for item in items_inst])}\n\n"
                                               f"<b>Данные о пользователе:</b>\n"
-                                              f"Тип бизнеса: {reg_info[2]}\n"
-                                              f"ФИО: {reg_info[3]}\n"
-                                              f"Номер телефона: {reg_info[4]}")
+                                              f"Тип бизнеса: {user_data['type_of_b']}\n"
+                                              f"ФИО: {user_data['fullname']}\n"
+                                              f"Номер телефона: {user_data['number']}")
             await bot.send_message(master_id2, f"<u><b>НОВЫЙ ЗАКАЗ</b></u>\n"
                                                f"Пользователь: {callback.from_user.full_name}\n"
                                                f"У пользователя закрытый аккаунт, ваш аккаунт для связи ему отправлен, <b>ждите сообщения!</b>\n\n"
                                                f"<b>Товары в наличии:</b>\n{new_line.join([str(item) for item in items_inst])}\n\n"
                                                f"<b>Данные о пользователе:</b>\n"
-                                               f"Тип бизнеса: {reg_info[2]}\n"
-                                               f"ФИО: {reg_info[3]}\n"
-                                               f"Номер телефона: {reg_info[4]}")
+                                               f"Тип бизнеса: {user_data['type_of_b']}\n"
+                                              f"ФИО: {user_data['fullname']}\n"
+                                              f"Номер телефона: {user_data['number']}")
+
+            order = f"Товары в наличии:\n{new_line.join([str(item) for item in items_inst])}\n\n"
+
+            await db_ord.add_order_to_site(callback.from_user.full_name, 'Закрытый акк. должен написать в лс',
+                                           order, user_data['type_of_b'],
+                                           user_data['fullname'], user_data['number'], datetime.now())
+
         elif pre_order_exist and items_otw_exist and items_inst_exist:
             await bot.send_message(master_id1, f"<u><b>НОВЫЙ ЗАКАЗ</b></u>\n"
                                               f"Пользователь: {callback.from_user.full_name}\n"
@@ -674,9 +781,9 @@ async def confirm_pre_order(callback: CallbackQuery) -> None:
                                               f"<b>Предзаказ:</b>\n"
                                               f"{pre_ord[0]}\n\n"
                                               f"<b>Данные о пользователе:</b>\n"
-                                              f"Тип бизнеса: {reg_info[2]}\n"
-                                              f"ФИО: {reg_info[3]}\n"
-                                              f"Номер телефона: {reg_info[4]}")
+                                              f"Тип бизнеса: {user_data['type_of_b']}\n"
+                                              f"ФИО: {user_data['fullname']}\n"
+                                              f"Номер телефона: {user_data['number']}")
             await bot.send_message(master_id2, f"<u><b>НОВЫЙ ЗАКАЗ</b></u>\n"
                                                f"Пользователь: {callback.from_user.full_name}\n"
                                                f"У пользователя закрытый аккаунт, ваш аккаунт для связи ему отправлен, <b>ждите сообщения!</b>\n\n"
@@ -685,9 +792,19 @@ async def confirm_pre_order(callback: CallbackQuery) -> None:
                                                f"<b>Предзаказ:</b>\n"
                                                f"{pre_ord[0]}\n\n"
                                                f"<b>Данные о пользователе:</b>\n"
-                                               f"Тип бизнеса: {reg_info[2]}\n"
-                                               f"ФИО: {reg_info[3]}\n"
-                                               f"Номер телефона: {reg_info[4]}")
+                                               f"Тип бизнеса: {user_data['type_of_b']}\n"
+                                              f"ФИО: {user_data['fullname']}\n"
+                                              f"Номер телефона: {user_data['number']}")
+
+            order = f"Товары в пути:\n{new_line.join([str(item) for item in items_otw])}\n\n" \
+                    f"Товары в наличии:\n{new_line.join([str(item) for item in items_inst])}\n\n" \
+                    f"Предзаказ:\n" \
+                    f"{pre_ord[0]}\n\n"
+
+            await db_ord.add_order_to_site(callback.from_user.full_name, 'Закрытый акк. должен написать в лс',
+                                           order, user_data['type_of_b'],
+                                           user_data['fullname'], user_data['number'], datetime.now())
+
         elif not pre_order_exist and items_otw_exist and items_inst_exist:
             await bot.send_message(master_id1, f"<u><b>НОВЫЙ ЗАКАЗ</b></u>\n"
                                               f"Пользователь: {callback.from_user.full_name}\n"
@@ -695,18 +812,25 @@ async def confirm_pre_order(callback: CallbackQuery) -> None:
                                               f"<b>Товары в пути:</b>\n{new_line.join([str(item) for item in items_otw])}\n\n"
                                               f"<b>Товары в наличии:</b>\n{new_line.join([str(item) for item in items_inst])}\n\n"
                                               f"<b>Данные о пользователе:</b>\n"
-                                              f"Тип бизнеса: {reg_info[2]}\n"
-                                              f"ФИО: {reg_info[3]}\n"
-                                              f"Номер телефона: {reg_info[4]}")
+                                             f"Тип бизнеса: {user_data['type_of_b']}\n"
+                                              f"ФИО: {user_data['fullname']}\n"
+                                              f"Номер телефона: {user_data['number']}")
             await bot.send_message(master_id2, f"<u><b>НОВЫЙ ЗАКАЗ</b></u>\n"
                                                f"Пользователь: {callback.from_user.full_name}\n"
                                                f"У пользователя закрытый аккаунт, ваш аккаунт для связи ему отправлен, <b>ждите сообщения!</b>\n\n"
                                                f"<b>Товары в пути:</b>\n{new_line.join([str(item) for item in items_otw])}\n\n"
                                                f"<b>Товары в наличии:</b>\n{new_line.join([str(item) for item in items_inst])}\n\n"
                                                f"<b>Данные о пользователе:</b>\n"
-                                               f"Тип бизнеса: {reg_info[2]}\n"
-                                               f"ФИО: {reg_info[3]}\n"
-                                               f"Номер телефона: {reg_info[4]}")
+                                               f"Тип бизнеса: {user_data['type_of_b']}\n"
+                                              f"ФИО: {user_data['fullname']}\n"
+                                              f"Номер телефона: {user_data['number']}")
+
+            order = f"Товары в пути:\n{new_line.join([str(item) for item in items_otw])}\n\n" \
+                    f"Товары в наличии:\n{new_line.join([str(item) for item in items_inst])}\n\n"
+
+            await db_ord.add_order_to_site(callback.from_user.full_name, 'Закрытый акк. должен написать в лс',
+                                           order, user_data['type_of_b'],
+                                           user_data['fullname'], user_data['number'], datetime.now())
 
     await db_basket.delete_user_basket(callback.from_user.id)
     await callback.answer()
