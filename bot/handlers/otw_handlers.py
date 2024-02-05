@@ -81,12 +81,14 @@ async def categories_callbacks(callback: CallbackQuery, callback_data: Categorie
 
     items10 = []
     items_id = []
+    items_name = []
     items_next = False
 
     data = await db_otw.get_category_data10(callback_data.category)
 
     for row in data:
         item_id = row[0]
+        name = row[1]
         photo = row[2]
         image_id = row[10]
         name_image_id = row[11]
@@ -101,6 +103,8 @@ async def categories_callbacks(callback: CallbackQuery, callback_data: Categorie
         elif image_id is not None and name_image_id == photo:
             items10.append(InputMediaPhoto(type='photo', media=f'{image_id}'))
             items_id.append(item_id)
+
+        items_name.append(name)
 
     if len(items10) > 9:
         items_next = True
@@ -142,7 +146,10 @@ async def categories_callbacks(callback: CallbackQuery, callback_data: Categorie
         else:
             pass
 
+    new_line = '\n'
+
     await callback.message.answer(f"Раздел: {callback_data.category}\n\n"
+                                  f"{new_line.join([f'{items_name.index(name)+1}. '+str(name) for name in items_name])}\n\n"
                                   f"Выберите номер понравившейся позиции",
                                   reply_markup=kb_build10())
     await callback.answer()
@@ -152,12 +159,14 @@ async def categories_callbacks(callback: CallbackQuery, callback_data: Categorie
 async def in_stock20(callback: CallbackQuery, callback_data: CategoriesCF) -> None:
     items20 = []
     items_id = []
+    items_name = []
     items_next = False
 
     data = await db_otw.get_category_data_more(callback_data.category, callback_data.starting_point)
 
     for row in data:
         item_id = row[0]
+        name = row[1]
         photo = row[2]
         image_id = row[10]
         name_image_id = row[11]
@@ -173,6 +182,8 @@ async def in_stock20(callback: CallbackQuery, callback_data: CategoriesCF) -> No
             items20.append(InputMediaPhoto(type='photo', media=f'{image_id}'))
             items_id.append(item_id)
 
+        items_name.append(name)
+
     if len(items20) > 9:
         items_next = True
 
@@ -180,7 +191,7 @@ async def in_stock20(callback: CallbackQuery, callback_data: CategoriesCF) -> No
         kb20 = InlineKeyboardBuilder()
         for i in range(len(items20)):
             kb20.button(
-                text=f"{i+1}", callback_data=ItemsCF(item_id=items_id[i],
+                text=f"{i+1+callback_data.starting_point}", callback_data=ItemsCF(item_id=items_id[i],
                                                      category=callback_data.category)
             )
         if items_next:
@@ -214,7 +225,10 @@ async def in_stock20(callback: CallbackQuery, callback_data: CategoriesCF) -> No
         else:
             pass
 
+    new_line = '\n'
+
     await callback.message.answer(f"Раздел: {callback_data.category}\n\n"
+                                  f"{new_line.join([f'{items_name.index(name)+1+callback_data.starting_point}. '+str(name) for name in items_name])}\n\n"
                                   f"Выберите номер понравившейся позиции", reply_markup=kb_build20())
     await callback.answer()
 

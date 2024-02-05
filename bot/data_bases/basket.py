@@ -33,8 +33,8 @@ class DB_basket(DB_conn):
                 await self.create_pool()
             async with self.pool.acquire() as conn:
                 async with conn.transaction():
-                    await conn.execute(f"INSERT INTO users_basket (user_id, item, category) SELECT {user}, '{item}', '{cat}' "
-                                       f"WHERE NOT EXISTS (SELECT * FROM users_basket WHERE user_id = {user} AND item='{item}' AND category='{cat}');")
+                    await conn.execute(f"INSERT INTO users_basket (user_id, item, category) SELECT {user}, $1, '{cat}' "
+                                       f"WHERE NOT EXISTS (SELECT * FROM users_basket WHERE user_id = {user} AND item=$1 AND category='{cat}');", item)
         except:
             print("MDA")
 
@@ -65,7 +65,7 @@ class DB_basket(DB_conn):
                 await self.create_pool()
             async with self.pool.acquire() as conn:
                 async with conn.transaction():
-                    await conn.execute(f"UPDATE users_basket SET count=NULL WHERE item = '{name}' AND user_id = {user};")
+                    await conn.execute(f"UPDATE users_basket SET count=NULL WHERE item = $1 AND user_id = {user};", name)
         except:
             print("MDA")
 
@@ -97,7 +97,7 @@ class DB_basket(DB_conn):
                 await self.create_pool()
             async with self.pool.acquire() as conn:
                 async with conn.transaction():
-                    await conn.execute(f"DELETE FROM users_basket WHERE item = '{name}' AND user_id = {user};")
+                    await conn.execute(f"DELETE FROM users_basket WHERE item = $1 AND user_id = {user};", name)
         except:
             print("MDA")
 

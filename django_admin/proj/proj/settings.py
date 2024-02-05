@@ -1,7 +1,7 @@
 from pathlib import Path
 import os
 
-from bot.config import db_user, db_password
+from .config_db import db_user, db_password
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -56,11 +56,11 @@ WSGI_APPLICATION = 'proj.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'freshflowers',
+        'NAME': 'ozflowers',
         'USER': db_user,
         'PASSWORD': db_password,
         'HOST': 'localhost',
-        'PORT': '5432',
+        'PORT': '5433',
     }
 }
 

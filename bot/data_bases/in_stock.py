@@ -87,7 +87,7 @@ class DB_inst(DB_conn):
                 await self.create_pool()
             async with self.pool.acquire() as conn:
                 async with conn.transaction():
-                    await conn.execute(f"UPDATE administration_instock SET col=col-{col} WHERE name='{name}';")
+                    await conn.execute(f"UPDATE administration_instock SET col=col-{col} WHERE name=$1;", name)
         except:
             print("MDA")
 
@@ -107,7 +107,7 @@ class DB_inst(DB_conn):
                 await self.create_pool()
             async with self.pool.acquire() as conn:
                 async with conn.transaction():
-                    row = await conn.fetchrow(f"SELECT * FROM administration_instock WHERE name='{name}';")
+                    row = await conn.fetchrow(f"SELECT * FROM administration_instock WHERE name=$1;", name)
         except:
             print("MDA")
         else:
