@@ -7,7 +7,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = 'eededededsdsd-ddwdsdsdawd-zesddwdi=t+sd9(&@^ep9v+@_es@v!gdearfgawdedaw9rs4u&ffeyq=an5f-4fefeeffef10@1(y'
 
-DEBUG = False
+DEBUG = True
 
 ALLOWED_HOSTS = []
 
@@ -85,7 +85,7 @@ TIME_ZONE = 'Europe/Moscow'
 
 USE_I18N = True
 
-USE_L10N = False
+USE_L10N = True
 
 USE_TZ = True
 
