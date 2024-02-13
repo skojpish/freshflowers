@@ -453,7 +453,7 @@ async def edit_item_count(msg: Message, state: FSMContext) -> None:
                              f"Напишите количество, которое вы хотели бы заказать еще раз",
                              reply_markup=back_to_menu_kb())
     elif min is not None and mult is not None:
-        if int(msg.text) <= count and int(msg.text) >= min and int(msg.text)%mult == 0:
+        if (int(msg.text) <= count and int(msg.text) >= min and int(msg.text)%mult == 0) or (count < min and int(msg.text) <= count and int(msg.text) > 0):
             await db_basket.add_items_count(int(msg.text), msg.from_user.id)
             await state.clear()
             reg_info = await db_ord.get_ord_row(msg.from_user.id)

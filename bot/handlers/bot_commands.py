@@ -1,3 +1,4 @@
+from aiogram.exceptions import TelegramBadRequest
 from aiogram.types import BotCommand, CallbackQuery
 
 from bot.config import bot
@@ -56,7 +57,11 @@ async def menu(callback: CallbackQuery, state: FSMContext) -> None:
 
 @router.callback_query(F.data == "back")
 async def back(callback: CallbackQuery) -> None:
-    await callback.message.delete()
+    try:
+        await callback.message.delete()
+    except TelegramBadRequest:
+        pass
+
     await callback.answer()
 
 # Basket

@@ -1,4 +1,5 @@
 from aiogram import Router, F
+from aiogram.exceptions import TelegramBadRequest
 from aiogram.filters.callback_data import CallbackData
 from aiogram.fsm.context import FSMContext
 from aiogram.types import FSInputFile, CallbackQuery, InputMediaPhoto, InlineKeyboardButton, InlineKeyboardMarkup, \
@@ -77,7 +78,10 @@ async def other_categories(callback: CallbackQuery) -> None:
 # Get items from otw
 @router.callback_query(CategoriesCF.filter(F.next_ten==False))
 async def categories_callbacks(callback: CallbackQuery, callback_data: CategoriesCF) -> None:
-    await callback.message.delete()
+    try:
+        await callback.message.delete()
+    except TelegramBadRequest:
+        pass
 
     items10 = []
     items_id = []
@@ -282,7 +286,7 @@ async def in_stock_callbacks(callback: CallbackQuery, callback_data: ItemsCF) ->
                                                                f"Дата прибытия: {data['date'].strftime('%d.%m.%Y')}",
                                                 reply_markup=items_order_kb())
     elif data['min'] is not None and data['mult'] is None:
-        if data['col'] > data['min']:
+        if data['col'] >= data['min']:
             await callback.message.answer_photo(data['photo'], f"{data['name']}\n"
                                                                f"{data['descrip']}\n"
                                                                f"Цена: {data['price']} руб\n"
@@ -291,7 +295,7 @@ async def in_stock_callbacks(callback: CallbackQuery, callback_data: ItemsCF) ->
                                                                f"Дата прибытия: {data['date'].strftime('%d.%m.%Y')}\n\n"
                                                                f"* можно заказать лишь НЕ МЕНЬШЕ данного числа количество",
                                                                reply_markup=items_order_kb())
-        elif data['col'] <= data['min']:
+        elif data['col'] < data['min']:
             await callback.message.answer_photo(data['photo'], f"{data['name']}\n"
                                                                f"{data['descrip']}\n"
                                                                f"Цена: {data['price']} руб\n"
@@ -299,7 +303,7 @@ async def in_stock_callbacks(callback: CallbackQuery, callback_data: ItemsCF) ->
                                                                f"Дата прибытия: {data['date'].strftime('%d.%m.%Y')}",
                                                                reply_markup=items_order_kb())
     else:
-        if data['col'] > data['min']:
+        if data['col'] >= data['min']:
             await callback.message.answer_photo(data['photo'], f"{data['name']}\n"
                                                                f"{data['descrip']}\n"
                                                                f"Цена: {data['price']} руб\n"
@@ -310,7 +314,7 @@ async def in_stock_callbacks(callback: CallbackQuery, callback_data: ItemsCF) ->
                                                                f"* можно заказать лишь НЕ МЕНЬШЕ данного числа количество\n"
                                                                f"** можно заказать лишь КРАТНОЕ данному числу количество",
                                                 reply_markup=items_order_kb())
-        elif data['col'] <= data['min']:
+        elif data['col'] < data['min']:
             await callback.message.answer_photo(data['photo'], f"{data['name']}\n"
                                                                f"{data['descrip']}\n"
                                                                f"Цена: {data['price']} руб\n"
@@ -391,7 +395,7 @@ async def count(msg: Message, state: FSMContext) -> None:
                              f"Напишите количество, которое вы хотели бы заказать еще раз",
                              reply_markup=back_to_menu_kb())
     elif min is not None and mult is not None:
-        if int(msg.text) <= count and int(msg.text) >= min and int(msg.text)%mult == 0:
+        if (int(msg.text) <= count and int(msg.text) >= min and int(msg.text)%mult == 0) or (count < min and int(msg.text) <= count and int(msg.text) > 0):
             await db_basket.add_items_count(int(msg.text), msg.from_user.id)
             await state.clear()
             await msg.answer(f"Товар успешно добавлен в корзину!",
@@ -666,7 +670,7 @@ async def count(msg: Message, state: FSMContext) -> None:
                              reply_markup=back_to_menu_kb())
 
     elif mult is not None and min is not None:
-        if int(msg.text) <= count and int(msg.text) >= min and int(msg.text) % mult == 0:
+        if (int(msg.text) <= count and int(msg.text) >= min and int(msg.text)%mult == 0) or (count < min and int(msg.text) <= count and int(msg.text) > 0):
             await db_basket.add_items_count(int(msg.text), msg.from_user.id)
             await state.clear()
             await db_ord.add_user_to_order(msg.from_user.id)

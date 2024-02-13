@@ -1,6 +1,7 @@
 from glob import glob
 
 from aiogram import Router, F
+from aiogram.exceptions import TelegramBadRequest
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, Message, FSInputFile
 
@@ -32,7 +33,11 @@ async def channel(callback: CallbackQuery) -> None:
 
 @router.callback_query(F.data == "price_list")
 async def price_list(callback: CallbackQuery) -> None:
-    await callback.message.delete()
+    try:
+        await callback.message.delete()
+    except TelegramBadRequest:
+        pass
+
     files = glob(f"django_admin/proj/media/pricelist/*")
     if len(files) != 0:
         file = files[0]

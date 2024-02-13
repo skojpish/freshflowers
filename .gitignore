@@ -10,4 +10,4 @@
 /django_admin/proj/proj/settings.py
 /bot/.env
 *.log
-/main.py
+main.py
