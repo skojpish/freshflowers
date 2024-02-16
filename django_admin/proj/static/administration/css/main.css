@@ -1,0 +1,193 @@
+body {
+    background: #fff5ee !important;
+}
+
+.d-grid, .excel_input {
+    width: 400px;
+    height: 150px;
+
+    position: absolute;
+    top:0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+
+    margin: auto;
+}
+
+.excel_confirm {
+    width: 400px;
+    height: 200px;
+
+    position: absolute;
+    top:0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+
+    margin: auto;
+}
+
+.btn {
+    font-size: 20px !important;
+}
+
+.excel_warn {
+    font-size: 18px;
+}
+
+.prlist_confirm {
+    font-size: 18px;
+    text-align: center;
+}
+
+.home {
+    float: right;
+    margin-top: 5px;
+    margin-right: 5px;
+}
+
+div img {
+    display: block;
+    margin: auto;
+}
+
+#admin.btn-primary {
+  color: #FFFFFF;
+  background-color: #DB847B;
+  border-color: #DB847B;
+}
+
+#admin.btn-primary:hover,
+#admin.btn-primary:focus,
+#admin.btn-primary:active,
+#admin.btn-primary.active,
+#admin.open #admin.dropdown-toggle.btn-primary {
+  color: #FFFFFF;
+  background-color: #d16054;
+  border-color: #DB847B;
+}
+
+#admin.btn-primary:active,
+#admin.btn-primary.active,
+#admin.open #admin.dropdown-toggle.btn-primary {
+  background-image: none;
+}
+
+#admin.btn-primary.disabled,
+#admin.btn-primary[disabled],
+fieldset[disabled] #admin.btn-primary,
+#admin.btn-primary.disabled:hover,
+#admin.btn-primary[disabled]:hover,
+fieldset[disabled] #admin.btn-primary:hover,
+#admin.btn-primary.disabled:focus,
+#admin.btn-primary[disabled]:focus,
+fieldset[disabled] #admin.btn-primary:focus,
+#admin.btn-primary.disabled:active,
+#admin.btn-primary[disabled]:active,
+fieldset[disabled] #admin.btn-primary:active,
+#admin.btn-primary.disabled.active,
+#admin.btn-primary[disabled].active,
+fieldset[disabled] #admin.btn-primary.active {
+  background-color: #DB847B;
+  border-color: #DB847B;
+}
+
+#admin.btn-primary #admin.badge {
+  color: #DB847B;
+  background-color: #FFFFFF;
+}
+
+
+
+#excel.btn-primary {
+  color: #FFFFFF;
+  background-color: #198754;
+  border-color: #198754;
+}
+
+#excel.btn-primary:hover,
+#excel.btn-primary:focus,
+#excel.btn-primary:active,
+#excel.btn-primary.active,
+#excel.open #excel.dropdown-toggle.btn-primary {
+  color: #FFFFFF;
+  background-color: #157347;
+  border-color: #198754;
+}
+
+#excel.btn-primary:active,
+#excel.btn-primary.active,
+#excel.open #excel.dropdown-toggle.btn-primary {
+  background-image: none;
+}
+
+#excel.btn-primary.disabled,
+#excel.btn-primary[disabled],
+fieldset[disabled] #excel.btn-primary,
+#excel.btn-primary.disabled:hover,
+#excel.btn-primary[disabled]:hover,
+fieldset[disabled] #excel.btn-primary:hover,
+#excel.btn-primary.disabled:focus,
+#excel.btn-primary[disabled]:focus,
+fieldset[disabled] #excel.btn-primary:focus,
+#excel.btn-primary.disabled:active,
+#excel.btn-primary[disabled]:active,
+fieldset[disabled] #excel.btn-primary:active,
+#excel.btn-primary.disabled.active,
+#excel.btn-primary[disabled].active,
+fieldset[disabled] #excel.btn-primary.active {
+  background-color: #198754;
+  border-color: #198754;
+}
+
+#excel.btn-primary #excel.badge {
+  color: #198754;
+  background-color: #FFFFFF;
+}
+
+#home_button.btn-primary {
+  color: #FFFFFF;
+  background-color: #808080;
+  border-color: #808080;
+}
+
+#home_button.btn-primary:hover,
+#home_button.btn-primary:focus,
+#home_button.btn-primary:active,
+#home_button.btn-primary.active,
+#home_button.open #home_button.dropdown-toggle.btn-primary {
+  color: #FFFFFF;
+  background-color: #696969;
+  border-color: #808080;
+}
+
+#home_button.btn-primary:active,
+#home_button.btn-primary.active,
+#home_button.open #home_button.dropdown-toggle.btn-primary {
+  background-image: none;
+}
+
+#home_button.btn-primary.disabled,
+#home_button.btn-primary[disabled],
+fieldset[disabled] #home_button.btn-primary,
+#home_button.btn-primary.disabled:hover,
+#home_button.btn-primary[disabled]:hover,
+fieldset[disabled] #home_button.btn-primary:hover,
+#home_button.btn-primary.disabled:focus,
+#home_button.btn-primary[disabled]:focus,
+fieldset[disabled] #home_button.btn-primary:focus,
+#home_button.btn-primary.disabled:active,
+#home_button.btn-primary[disabled]:active,
+fieldset[disabled] #home_button.btn-primary:active,
+#home_button.btn-primary.disabled.active,
+#home_button.btn-primary[disabled].active,
+fieldset[disabled] #home_button.btn-primary.active {
+  background-color: #808080;
+  border-color: #808080;
+}
+
+#home_button.btn-primary #home_button.badge {
+  color: #808080;
+  background-color: #FFFFFF;
+}
