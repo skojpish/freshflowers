@@ -13,5 +13,6 @@ master_id2 = getenv("MASTER_ID2")
 master_username2 = getenv("MASTER_USERNAME2")
 db_user = getenv("DB_USER")
 db_password = getenv("DB_PASSWORD")
+db_name = getenv("DB_NAME")
 
 

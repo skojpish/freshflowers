@@ -1,11 +1,11 @@
 import asyncpg
 
-from bot.config import db_user, db_password
+from bot.config import db_user, db_password, db_name
 
 
 class DB_conn:
     def __init__(self):
-        self.database = 'ozflowers'
+        self.database = db_name
         self.user = db_user
         self.password = db_password
         self.host = 'localhost'
