@@ -1,4 +1,5 @@
 from bot.data_bases.psql_conn import DB_conn
+from .config_logger_db import logger
 
 class DB_images_id(DB_conn):
     async def add_image_otw(self):
@@ -11,10 +12,8 @@ class DB_images_id(DB_conn):
                     if row is not None:
                         await conn.execute(f"INSERT INTO administration_telegramidimage (name, id_image) "
                                        f"VALUES ('{row[1]}', '{row[10]}');")
-                    else:
-                        pass
-        except:
-            print('MDA')
+        except Exception as e:
+            logger.error(e)
 
     async def add_image_inst(self):
         try:
@@ -28,8 +27,8 @@ class DB_images_id(DB_conn):
                                        f"VALUES ('{row[1]}', '{row[10]}');")
                     else:
                         pass
-        except:
-            print('MDA')
+        except Exception as e:
+            logger.error(e)
 
 
 db_tg_image = DB_images_id()
