@@ -7,15 +7,19 @@ from bot.data_bases.basket import db_basket
 from bot.data_bases.order import db_ord
 from bot.handlers import order_handlers, otw_handlers, bot_commands, edit_handlers, in_stock_handlers
 from bot.handlers.bot_commands import setup_bot_commands
+from bot.handlers.schedulers import start_scheduler
 
 
-# добавить хэндлеры товаров в наличии и шедулер!!
+async def on_startup() -> None:
+    await start_scheduler()
 
 async def main() -> None:
     dp = Dispatcher()
 
     dp.include_routers(otw_handlers.router, order_handlers.router, bot_commands.router, edit_handlers.router,
                        in_stock_handlers.router)
+
+    dp.startup.register(on_startup)
 
     try:
         await setup_bot_commands()

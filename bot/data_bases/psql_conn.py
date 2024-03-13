@@ -1,6 +1,6 @@
 import asyncpg
 
-from bot.config import db_user, db_password, db_name
+from bot.config import db_user, db_password, db_name, db_host, db_port
 
 
 class DB_conn:
@@ -8,8 +8,8 @@ class DB_conn:
         self.database = db_name
         self.user = db_user
         self.password = db_password
-        self.host = 'localhost'
-        self.port = 5433
+        self.host = db_host
+        self.port = db_port
         self.pool = None
 
     async def create_pool(self):

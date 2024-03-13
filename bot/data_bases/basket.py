@@ -28,6 +28,19 @@ class DB_basket(DB_conn):
         except Exception as e:
             logger.error(e)
 
+    async def get_all_users(self):
+        try:
+            if self.pool is None:
+                await self.create_pool()
+            async with self.pool.acquire() as conn:
+                async with conn.transaction():
+                    users = await conn.fetch(
+                        f"SELECT user_id FROM statistic_user;")
+        except Exception as e:
+            logger.error(e)
+        else:
+            return users
+
     async def add_item_to_basket(self, user, item, cat):
         try:
             if self.pool is None:

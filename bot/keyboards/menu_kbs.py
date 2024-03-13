@@ -29,6 +29,15 @@ def start_kb() -> InlineKeyboardMarkup:
     kb.adjust(1)
     return kb.as_markup()
 
+# Scheduler kb
+def scheduler_kb() -> InlineKeyboardMarkup:
+    kb = InlineKeyboardBuilder()
+    kb.add(InlineKeyboardButton(
+        text="Сделать заказ", callback_data="back_to_menu_photo"
+    ))
+    kb.adjust(1)
+    return kb.as_markup()
+
 def back_to_menu_kb() -> InlineKeyboardMarkup:
     kb = InlineKeyboardBuilder()
     kb.add(InlineKeyboardButton(

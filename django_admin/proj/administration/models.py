@@ -36,7 +36,7 @@ class Item(models.Model):
 
     class Meta:
         verbose_name = 'Товар в пути'
-        verbose_name_plural = 'Товар в пути'
+        verbose_name_plural = 'Товары в пути'
 
 class InStock(models.Model):
     objects = models.Manager()
@@ -68,7 +68,7 @@ class InStock(models.Model):
             )
 
     class Meta:
-        verbose_name = 'Товары в наличии'
+        verbose_name = 'Товар в наличии'
         verbose_name_plural = 'Товары в наличии'
 
 class TelegramIdImage(models.Model):
@@ -82,3 +82,18 @@ class ExcelInput(models.Model):
 
 class PriceList(models.Model):
     price_list = models.FileField(upload_to="pricelist/")
+
+    class Meta:
+        verbose_name = 'Прайс лист'
+        verbose_name_plural = 'Прайс лист'
+
+class Mailing(models.Model):
+    objects = models.Manager()
+
+    mail_text = models.TextField(verbose_name="Текст рассылки")
+    date_time = models.DateTimeField(verbose_name="Дата и время публикации")
+    status_new = models.BooleanField(default=True, editable=False)
+
+    class Meta:
+        verbose_name = 'Рассылку'
+        verbose_name_plural = 'Рассылки'
