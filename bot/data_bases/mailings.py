@@ -20,7 +20,7 @@ class DB_mailings(DB_conn):
                 await self.create_pool()
             async with self.pool.acquire() as conn:
                 async with conn.transaction():
-                    await conn.execute(f"UPDATE administration_mailing SET status_new=False WHERE id={mail_id};")
+                    await conn.execute(f"UPDATE administration_mailing SET status_new=False WHERE id=$1;", mail_id)
         except Exception as e:
             logger.error(e)
 
@@ -30,10 +30,11 @@ class DB_mailings(DB_conn):
                 await self.create_pool()
             async with self.pool.acquire() as conn:
                 async with conn.transaction():
-                    row = await conn.fetchrow(f"SELECT mail_text FROM administration_mailing WHERE id={mail_id};")
+                    row = await conn.fetchrow(f"SELECT mail_text FROM administration_mailing WHERE id=$1;", mail_id)
         except Exception as e:
             logger.error(e)
         else:
             return row
+
 
 db_mail = DB_mailings()

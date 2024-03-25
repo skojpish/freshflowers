@@ -3,7 +3,6 @@ import asyncio
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
 from bot.config import bot
-from bot.data_bases.basket import db_basket
 from bot.data_bases.mailings import db_mail
 from bot.data_bases.psql_get import db_otw
 from bot.keyboards.menu_kbs import scheduler_kb

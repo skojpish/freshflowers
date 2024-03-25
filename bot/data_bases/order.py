@@ -1,6 +1,7 @@
 from bot.data_bases.psql_conn import DB_conn
 from .config_logger_db import logger
 
+
 class DB_order(DB_conn):
     async def create_order_table(self):
         try:
@@ -23,7 +24,8 @@ class DB_order(DB_conn):
             async with self.pool.acquire() as conn:
                 async with conn.transaction():
                     await conn.execute(
-                        f"INSERT INTO user_order (user_id) SELECT {user} WHERE NOT EXISTS (SELECT * FROM user_order WHERE user_id = {user});")
+                        f"INSERT INTO user_order (user_id) SELECT $1 WHERE NOT EXISTS "
+                        f"(SELECT * FROM user_order WHERE user_id = $1);", user)
         except Exception as e:
             logger.error(e)
 
@@ -33,7 +35,8 @@ class DB_order(DB_conn):
                 await self.create_pool()
             async with self.pool.acquire() as conn:
                 async with conn.transaction():
-                    await conn.execute(f"UPDATE user_order SET business_type='{bus_type}' WHERE user_id = {user};")
+                    await conn.execute(f"UPDATE user_order SET business_type=$1 WHERE user_id = $2;",
+                                       bus_type, user)
         except Exception as e:
             logger.error(e)
 
@@ -43,7 +46,7 @@ class DB_order(DB_conn):
                 await self.create_pool()
             async with self.pool.acquire() as conn:
                 async with conn.transaction():
-                    await conn.execute(f"UPDATE user_order SET full_name='{fname}' WHERE user_id = {user};")
+                    await conn.execute(f"UPDATE user_order SET full_name=$1 WHERE user_id = $2;", fname, user)
         except Exception as e:
             logger.error(e)
 
@@ -53,7 +56,7 @@ class DB_order(DB_conn):
                 await self.create_pool()
             async with self.pool.acquire() as conn:
                 async with conn.transaction():
-                    await conn.execute(f"UPDATE user_order SET number={number} WHERE user_id = {user};")
+                    await conn.execute(f"UPDATE user_order SET number=$1 WHERE user_id = $2;", number, user)
         except Exception as e:
             logger.error(e)
 
@@ -63,7 +66,7 @@ class DB_order(DB_conn):
                 await self.create_pool()
             async with self.pool.acquire() as conn:
                 async with conn.transaction():
-                    row = await conn.fetchrow(f"SELECT * FROM user_order WHERE user_id = {user};")
+                    row = await conn.fetchrow(f"SELECT * FROM user_order WHERE user_id = $1;", user)
         except Exception as e:
             logger.error(e)
         else:
@@ -75,7 +78,7 @@ class DB_order(DB_conn):
                 await self.create_pool()
             async with self.pool.acquire() as conn:
                 async with conn.transaction():
-                    await conn.execute(f"DELETE FROM user_order WHERE user_id = {user};")
+                    await conn.execute(f"DELETE FROM user_order WHERE user_id = $1;", user)
         except Exception as e:
             logger.error(e)
 
@@ -87,8 +90,10 @@ class DB_order(DB_conn):
                 async with conn.transaction():
                     await conn.execute(
                         f"INSERT INTO statistic_order(user_name, link_user, order_user, type_of_b, fullname, number, time_ord) "
-                        f"VALUES('{user_name}', '{link}', $1, '{type_of_b}', '{fullname}', '{number}', '{time}');", order)
+                        f"VALUES($1, $2, $3, $4, $5, $6, $7);",
+                        user_name, link, order, type_of_b, fullname, number, time)
         except Exception as e:
             logger.error(e)
+
 
 db_ord = DB_order()

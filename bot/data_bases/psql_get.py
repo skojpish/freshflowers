@@ -8,8 +8,8 @@ class DB_otw(DB_conn):
                 await self.create_pool()
             async with self.pool.acquire() as conn:
                 async with conn.transaction():
-                    rows = await conn.fetch(f"SELECT * FROM administration_item WHERE category='{category}' AND "
-                                            f"(photo!='' OR image_id IS NOT NULL) ORDER BY id LIMIT 10;")
+                    rows = await conn.fetch(f"SELECT * FROM administration_item WHERE category=$1 AND "
+                                            f"(photo!='' OR image_id IS NOT NULL) ORDER BY id LIMIT 10;", category)
         except Exception as e:
             logger.error(e)
         else:
@@ -21,8 +21,9 @@ class DB_otw(DB_conn):
                 await self.create_pool()
             async with self.pool.acquire() as conn:
                 async with conn.transaction():
-                    rows = await conn.fetch(f"SELECT * FROM administration_item WHERE category='{category}' AND "
-                                            f"(photo!='' OR image_id IS NOT NULL) ORDER BY id LIMIT 10 OFFSET {offset};")
+                    rows = await conn.fetch(f"SELECT * FROM administration_item WHERE category=$1 AND "
+                                            f"(photo!='' OR image_id IS NOT NULL) ORDER BY id LIMIT 10 OFFSET $2;",
+                                            category, offset)
         except Exception as e:
             logger.error(e)
         else:
@@ -34,7 +35,7 @@ class DB_otw(DB_conn):
                 await self.create_pool()
             async with self.pool.acquire() as conn:
                 async with conn.transaction():
-                    row = await conn.fetchrow(f"SELECT * FROM administration_item WHERE id={item_id};")
+                    row = await conn.fetchrow(f"SELECT * FROM administration_item WHERE id=$1;", item_id)
         except Exception as e:
             logger.error(e)
         else:
@@ -64,8 +65,9 @@ class DB_otw(DB_conn):
                 await self.create_pool()
             async with self.pool.acquire() as conn:
                 async with conn.transaction():
-                    await conn.execute(f"UPDATE administration_item SET image_id='{image_id}', "
-                                       f"name_image_id='{name_image_id}' WHERE id='{item_id}';")
+                    await conn.execute(f"UPDATE administration_item SET image_id=$1, "
+                                       f"name_image_id=$2 WHERE id=$3;",
+                                       image_id, name_image_id, item_id)
         except Exception as e:
             logger.error(e)
 
@@ -75,7 +77,7 @@ class DB_otw(DB_conn):
                 await self.create_pool()
             async with self.pool.acquire() as conn:
                 async with conn.transaction():
-                    await conn.execute(f"UPDATE administration_item SET col=col-{col} WHERE name=$1;", name)
+                    await conn.execute(f"UPDATE administration_item SET col=col-$1 WHERE name=$2;", col, name)
         except Exception as e:
             logger.error(e)
 
@@ -107,7 +109,8 @@ class DB_otw(DB_conn):
                 await self.create_pool()
             async with self.pool.acquire() as conn:
                 async with conn.transaction():
-                    await conn.execute(f"INSERT INTO administration_instock SELECT * FROM administration_item WHERE item_date < LOCALTIMESTAMP;")
+                    await conn.execute(f"INSERT INTO administration_instock SELECT * FROM administration_item "
+                                       f"WHERE item_date < LOCALTIMESTAMP;")
                     await conn.execute(f"DELETE FROM administration_item WHERE item_date < LOCALTIMESTAMP;")
         except Exception as e:
             logger.error(e)
